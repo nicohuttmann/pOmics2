@@ -1,0 +1,21 @@
+Package: pOmics2
+Type: Package
+Title: pOmics2 Proteomics Data Analysis Package
+Version: 0.8
+Author: Nico Huettmann 
+Maintainer: Nico Huettmann <huttmann.nico@gmail.com>
+Description: Provides a framework for omics data analysis
+License: MIT
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/nicohuttmann/pOmics
+BugReports: https://github.com/nicohuttmann/pOmics/issues
+Suggests: 
+    BiocManager,
+    eulerr, 
+    ggrepel, 
+    ggvenn
+VignetteBuilder: knitr
+Imports:
+    tidyverse
+RoxygenNote: 7.2.3
