@@ -8,8 +8,8 @@ Description: Provides a framework for omics data analysis
 License: MIT
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/nicohuttmann/pOmics
-BugReports: https://github.com/nicohuttmann/pOmics/issues
+URL: https://github.com/nicohuttmann/pOmics2
+BugReports: https://github.com/nicohuttmann/pOmics2/issues
 Suggests: 
     BiocManager,
     eulerr, 

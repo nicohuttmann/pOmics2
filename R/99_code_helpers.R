@@ -121,3 +121,62 @@
   return(invisible(FUN.str))
   
 }
+
+
+#' Guesses observations names from raw_dataset
+#'
+#' @param x data frame
+#' @param pattern separation pattern of column names
+#' @param sample.as.suffix
+#' @param to.include observations that must be included; helps to identify
+#' correct observations
+#'
+#' @return
+#' @export
+#'
+#'
+identify_observations <- function(x,
+                                  pattern = ".",
+                                  sample.as.suffix = T,
+                                  to.include = NULL) {
+  
+  if (sample.as.suffix) {
+    fix <- substring(text = colnames(x), 1, .str_locate_last(colnames(x), pattern = pattern) - 1)
+  } else {
+    fix <- substring(text = colnames(x), .str_locate_last(colnames(x), pattern = pattern) + 1)
+  }
+  
+  
+  tab <- sort(table(fix), decreasing = TRUE)
+  
+  tab <- tab[nchar(names(tab)) >= 3]
+  
+  # Important: Exclusion list for potential sample names
+  tab <- tab[!names(tab) %in% c("Count", "IDs", "acid", "window", "position",
+                                "names", "[%]", "Peptide.counts")]
+  
+  # Consider predefined observations
+  if(is.null(to.include)) {
+    # Choose observations
+    observations <- colnames(x)[grepl(names(tab)[1], colnames(x))] %>%
+      substring(first = nchar(names(tab)[1]) + 2)
+  } else {
+    observations <- colnames(x)[grepl(names(tab)[1], colnames(x))] %>%
+      substring(first = nchar(names(tab)[1]) + 2)
+    while (!all(to.include) %in% observations) {
+      if (length(tab) == 0) {
+        stop(paste0(
+          "Given observations ",
+          paste(to.include, collapse = ", "),
+          " could not all be identified in the data frame. Check your input or the algorithm."
+        ))
+      }
+      tab <- tab[-1]
+      observations <- colnames(x)[grepl(names(tab)[1], colnames(x))] %>%
+        substring(first = nchar(names(tab)[1]) + 2)
+    }
+  }
+  
+  return(observations)
+  
+}
