@@ -1103,3 +1103,90 @@ do_column_summary <- function(data_,
   return(data_)
   
 }
+
+
+#' dplyr mutate function for list_ objects
+#'
+#' @param data_ list or tibble
+#' @param column name of new column (as string)
+#' @param texpr tidy expression to to use for a new column
+#' @param eval.rowwise evaluate columns row by row
+#' @param ... additional arguments for the mutate function
+#' @param input.name name of input data
+#' @param output.name name of output data
+#'
+#' @return
+#' @export
+#'
+#'
+do_row_mutate <- function(data_, 
+                          texpr, 
+                          calc_with, 
+                          group_by = "All", 
+                          ..., 
+                          input.name, 
+                          output.name = "_rowmutate") {
+  
+  # Check input
+  data <- .unpack_data(data_, input.name)
+  
+  # Save attributes
+  data_attributes <- attributes(data)
+  
+  ####
+  
+  if (!hasArg(calc_with) || !is.character(calc_with))
+    stop("Please specify the <calc_with> column name as a string.", 
+         call. = FALSE)
+  
+  if (!hasArg(texpr)) 
+    stop("Please specify the <texpr> (tidy expression) to define the operations.", 
+         call. = FALSE)
+  
+  
+  # Add dummy variable for all
+  if (group_by == "All" & !(group_by %in% names(data)))
+    data <- dplyr::mutate(data, All = "all")
+  if (!group_by %in% names(data)) {
+    
+    stop("Group column not found in data frame.")
+    
+  }
+  
+  
+  # Collect arguments
+  col_names <- c(names(data)[1], group_by)
+  
+  groups <- unique(data[["tissue"]]) %>% 
+    setNames(., .)
+  
+  
+  # Do operations within each row group
+  data <- purrr::map(
+    .x = setNames(groups, groups), 
+    .f = ~ 
+      data %>%
+      dplyr::filter(!!dplyr::sym(group_by) == .x) %>% 
+      dplyr::select(!all_of(col_names)) %>% 
+      .transpose_tibble() %>% 
+      dplyr::mutate(!!.x := !!dplyr::enquo(texpr), .keep = "unused") %>% 
+      .tibble2matrix(., from.row.names = names(.)[1]) %>%
+      t() %>%
+      .matrix2tibble(to.row.names = col_names[1])) %>% 
+    list_rbind()
+  
+  
+  # Output name
+  if (substr(output.name, 1, 1) == "_") {
+    output.name <- paste0(data_attributes[["input.name"]], output.name)
+  } 
+  
+  ####
+  
+  # Prepare return
+  data_ <- .pack_data(data, data_, data_attributes, output.name, overwrite = T)
+  
+  # Return
+  return(data_)
+  
+}
