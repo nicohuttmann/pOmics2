@@ -95,7 +95,7 @@ get_observations_data <- function(data_,
                                   which,
                                   observations,
                                   output.type = "list_",
-                                  output.name = "observations_data", 
+                                  output.name, 
                                   dataset) {
   
   # Check dataset
@@ -203,6 +203,11 @@ get_observations_data <- function(data_,
                 "single and multiple observations data calls with the ",
                 "optional suffix <_inlist>."))
     
+  }
+  
+  # Output name
+  if (!hasArg(output.name)) {
+    output.name <- paste("observations_data", dataset, sep = "_")
   }
   
   #### 

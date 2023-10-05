@@ -9,7 +9,7 @@ get_observations_data(
   which,
   observations,
   output.type = "list_",
-  output.name = "observations_data",
+  output.name,
   dataset
 )
 }

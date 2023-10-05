@@ -10,7 +10,7 @@ get_data_frame(
   variables,
   observations,
   output.type = "list_",
-  output.name = which,
+  output.name,
   dataset
 )
 }

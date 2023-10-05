@@ -1,7 +1,7 @@
 Package: pOmics2
 Type: Package
-Title: pOmics2
-Version: 0.8
+Title: pOmics2 Proteomics Data Analysis Package
+Version: 0.9
 Author: Nico Huettmann 
 Maintainer: Nico Huettmann <huttmann.nico@gmail.com>
 Description: Tidy Data Analysis for Proteomics Data in R

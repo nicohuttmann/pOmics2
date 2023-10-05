@@ -77,3 +77,84 @@ mean_or_0 <- function(x) {
   
 }
 
+
+#' Title
+#'
+#' @param data 
+#' @param verbose 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' 
+norm_vsn <- function(data, verbose = F, ...) {
+  
+  # Prepare data
+  rows <- names(data)[1]
+  
+  if (rows == "observations") {
+    data_m <- data %>% 
+      column_to_rownames(var = rows) %>% 
+      as.matrix() %>% 
+      t() 
+      
+  } else {
+    data_m <- data %>% 
+      column_to_rownames(var = rows) %>% 
+      as.matrix()
+  }
+  
+  # Apply normalization method
+  data_norm_log2 <- vsn::justvsn(data_m, verbose = verbose, ...)
+
+  # Reformat the data
+  data_norm <- 2^data_norm_log2 
+  
+  if (rows == "observations") data_norm <- t(data_norm)
+  
+  data_norm <- .matrix2tibble(data_norm, to.row.names = rows)
+  
+  # Return normalized data
+  return(data_norm)
+  
+}
+
+
+#' Title
+#'
+#' @param data 
+#' @param group.column 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' 
+norm_vsn_grouped <- function(data, group.column, ...) {
+  
+  # Check data format
+  if (names(data)[1] != "observations") stop("First row must contain columns.", 
+                                             call. = F)
+  if (!hasArg(group.column) || !group.column %in% names(data)) 
+    stop("<group.column> must be specified and match a column name in <data>.", 
+         call. = F)
+  
+  # Separately normalize data
+  groups <- dplyr::pull(data, group.column)
+  data_list <- list()
+  for (i in unique(groups)) {
+    data_list[[i]] <- data %>% 
+      filter(!!sym(group.column) == i) %>% 
+      dplyr::select(-all_of(group.column)) %>% 
+      norm_vsn(...)
+  }
+  
+  # Combine separately normalized data
+  data_norm <- dplyr::bind_rows(data_list) %>% 
+    dplyr::mutate(!!group.column := groups, .after = 1)
+  
+  # Return data
+  return(data_norm)
+}
+

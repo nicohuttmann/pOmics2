@@ -9,7 +9,7 @@ get_variables_data(
   which,
   variables,
   output.type = "list_",
-  output.name = "variables_data",
+  output.name,
   dataset
 )
 }
