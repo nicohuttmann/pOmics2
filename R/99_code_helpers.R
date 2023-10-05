@@ -23,6 +23,25 @@
 #' @export
 #'
 #'
+.cat_character_named <- function(...) {
+  
+  n <- paste0(names(...), ' = "', ..., '"')
+  
+  cat(paste0('c(',
+             paste(n, collapse = ',\n\t'),
+             ')'))
+  
+}
+
+
+#' Prints vectors to console in as character vector
+#'
+#' @param ... vector/s
+#'
+#' @return
+#' @export
+#'
+#'
 .cat_numeric <- function(...) {
   
   cat(paste0('c(',

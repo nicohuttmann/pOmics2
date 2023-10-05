@@ -10,7 +10,7 @@
 #'
 #' @importFrom magrittr %>%
 #'
-plot_nothing <-function(data_, input.name, output.name = "_plot") {
+plot_nothing <- function(data_, input.name, output.name = "_plot") {
   
   # Check input
   data <- .unpack_data(data_, input.name)
@@ -29,8 +29,11 @@ plot_nothing <-function(data_, input.name, output.name = "_plot") {
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -164,8 +167,11 @@ plot_euler <-function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -340,7 +346,10 @@ plot_venn <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
   }
   
   ####
@@ -773,7 +782,10 @@ plot_xy <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
   }
   
   ####
@@ -963,7 +975,10 @@ plot_pca <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
   }
   
   ####
@@ -1135,7 +1150,10 @@ plot_volcano <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
   }
   
   ####
@@ -1149,4 +1167,50 @@ plot_volcano <- function(data_,
   return(invisible(data_))
   
 }
+
+
+.plot_vsn_meanSdPlot <- function(data, log2 = F) {
+  
+  # Prepare data
+  rows <- names(data)[1]
+  
+  if (rows == "observations") {
+    data_m <- data %>% 
+      column_to_rownames(var = rows) %>% 
+      as.matrix() %>% 
+      t() 
+    
+  } else {
+    data_m <- data %>% 
+      column_to_rownames(var = rows) %>% 
+      as.matrix()
+  }
+  
+  if (log2) data_m <- log2(data_m)
+  
+  p <- vsn::meanSdPlot(data_m, plot = F)$gg
+  
+  # Return data
+  return(p)
+  
+}
+
+
+.plot_vsn_meanSdPlot <- function(data_list, log2 = F) {
+  
+  plot_list <- purrr::map(data_list, ~ .plot_vsn_meanSdPlot(.x, log2 = log2))
+  
+  limits_list <- purrr::map(plot_list, ~ .get_plot_limits(.x))
+  
+  limits_df <- list2DF(limits_list)
+  
+  limits <- c(xmin = min(unlist(limits_df[1, ])), 
+              xmax = max(unlist(limits_df[2, ])), 
+              ymin = min(unlist(limits_df[3, ])), 
+              ymax = max(unlist(limits_df[4, ])))
+  
+  
+  
+}
+
 

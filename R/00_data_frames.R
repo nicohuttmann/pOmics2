@@ -19,7 +19,7 @@ get_data_frame <- function(data_,
                            variables,
                            observations,
                            output.type = "list_", 
-                           output.name = which,
+                           output.name,
                            dataset) {
   
   # Checks correct name of dataset
@@ -88,6 +88,11 @@ get_data_frame <- function(data_,
          "or <matrix> instead with the optional suffix <_inlist>.", 
          call. = FALSE)
     
+  }
+  
+  # Output name
+  if (!hasArg(output.name)) {
+    output.name <- paste(which, dataset, sep = "_")
   }
   
   #### 

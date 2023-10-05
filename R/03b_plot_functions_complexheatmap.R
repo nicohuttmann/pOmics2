@@ -81,8 +81,11 @@ plot_ComplexHeatmap <-function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   

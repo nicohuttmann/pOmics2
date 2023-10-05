@@ -86,8 +86,11 @@
       stop(paste0("Could not find <input.name> ", input.name, " in <data_> list."), 
            call. = FALSE)
     
+    if (is.numeric(input.name)) input.name <- names(data_)[input.name]
+    
     data <- data_[[input.name]]
     attr(data, "input.name") <- input.name
+    attr(data, "input.position") <- sprintf("%02d", match(input.name, names(data_)))
     
     # Regular data input
   } else {

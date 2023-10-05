@@ -47,7 +47,10 @@ do_nothing <-function(data_, input.name, output.name = "_nothing") {
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
   }
   
   ####
@@ -94,8 +97,11 @@ do_fun <- function(data_, FUN, ..., input.name, output.name = "_fun") {
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -145,8 +151,11 @@ do_with <- function(data_, expr, ..., input.name, output.name = "_with") {
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -259,8 +268,11 @@ do_expr <-function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -307,8 +319,11 @@ do_transpose <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -381,8 +396,11 @@ do_mutate <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -452,8 +470,11 @@ do_select <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -498,8 +519,11 @@ do_filter <- function(data_, texpr, input.name, output.name = "_filter") {
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -603,7 +627,11 @@ do_join <-function(data_,
   
   # Output name
   if (!hasArg(output.name)) 
-    output.name <- paste(input.names, collapse = "_")
+    output.name <- paste0(
+      paste(input.names, collapse = "-"), 
+      "_", 
+      join.type, 
+      "joined")
   
   ####
   
@@ -696,7 +724,11 @@ do_join_m <-function(data_,
   
   # Output name
   if (!hasArg(output.name)) 
-    output.name <- paste(input.names, collapse = "_")
+    output.name <- paste0(
+      paste(input.names, collapse = "-"), 
+      "_", 
+      join.type, 
+      "joined")
   
   ####
   
@@ -781,8 +813,11 @@ add_observations_data <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -862,8 +897,11 @@ add_variables_data <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -1013,8 +1051,11 @@ do_row_summary <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -1091,8 +1132,11 @@ do_column_summary <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   

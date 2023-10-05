@@ -68,7 +68,7 @@ get_variables_data <- function(data_,
                                which,
                                variables,
                                output.type = "list_",
-                               output.name = "variables_data", 
+                               output.name, 
                                dataset) {
   
   # Check dataset
@@ -181,6 +181,11 @@ get_variables_data <- function(data_,
                 "single and multiple variables data calls with the ",
                 "optional suffix <_inlist>."))
     
+  }
+  
+  # Output name
+  if (!hasArg(output.name)) {
+    output.name <- paste("variables_data", dataset, sep = "_")
   }
   
   #### 

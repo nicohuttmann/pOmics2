@@ -39,8 +39,11 @@ do_pca <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -122,7 +125,10 @@ do_cor <-function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
   } 
   
   ####
@@ -290,8 +296,11 @@ do_t.test <-function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -346,8 +355,11 @@ do_hclust_x <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -401,8 +413,11 @@ do_hclust_y <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -459,8 +474,11 @@ do_reorder_x <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(input.names[1], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -516,8 +534,11 @@ do_reorder_y <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(input.names[1], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   

@@ -239,7 +239,7 @@ get_dataset <- function(dataset) {
   if (!exists("Datasets")) 
     stop("There must be a list named Datasets.", call. = FALSE)
   
-  # Default if not given
+  # Automatic return if only one dataset exists
   if (!hasArg(dataset) && length(Datasets) == 1) {
     
     dataset <- names(Datasets)
@@ -249,6 +249,12 @@ get_dataset <- function(dataset) {
   } else if (!hasArg(dataset)) {
     stop("Please specify a dataset.", call. = FALSE)
   }
+  
+  # Search by number
+  if (is.numeric(dataset) && 
+      getOption("pOmics2_dataset_as_index") &&
+      (length(Datasets) >= dataset))
+    dataset <- names(Datasets)[dataset]
   
   # Name correct
   if (dataset %in% names(Datasets))

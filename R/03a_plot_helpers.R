@@ -38,7 +38,22 @@
 
 }
 
-
+#' Title
+#'
+#' @param plot 
+#'
+#' @return
+#' @export
+#'
+#' 
+.get_plot_limits <- function(plot) {
+  gb <- ggplot2::ggplot_build(plot)
+  xmin <- gb$layout$panel_params[[1]]$x.range[1]
+  xmax <- gb$layout$panel_params[[1]]$x.range[2]
+  ymin <- gb$layout$panel_params[[1]]$y.range[1]
+  ymax <- gb$layout$panel_params[[1]]$y.range[2]
+  list(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax)
+}
 
 #' Defines ggplot panel by ratio, size, unit size, center, and axis breaks
 #'
@@ -70,18 +85,11 @@
 
 
 
-  get_plot_limits <- function(plot) {
-    gb <- ggplot2::ggplot_build(plot)
-    xmin <- gb$layout$panel_params[[1]]$x.range[1]
-    xmax <- gb$layout$panel_params[[1]]$x.range[2]
-    ymin <- gb$layout$panel_params[[1]]$y.range[1]
-    ymax <- gb$layout$panel_params[[1]]$y.range[2]
-    list(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax)
-  }
+  
 
 
 
-  plot_limits0 <- get_plot_limits(p)
+  plot_limits0 <- .get_plot_limits(p)
   plot_limits <- plot_limits0
 
 
