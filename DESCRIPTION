@@ -1,7 +1,7 @@
 Package: pOmics2
 Type: Package
 Title: pOmics2 Proteomics Data Analysis Package
-Version: 0.9
+Version: 0.10
 Author: Nico Huettmann 
 Maintainer: Nico Huettmann <huttmann.nico@gmail.com>
 Description: Provides a framework for omics data analysis

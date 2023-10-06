@@ -27,7 +27,7 @@ variable, e.g. x > 2)}
 
 \item{ignore}{(optional) character vector of columns to ignore}
 
-\item{eval.rowwise}{evaluate columns row by row}
+\item{eval.rowwise}{evaluate columns row by row (default = T)}
 
 \item{input.name}{if data_ is list: name of data to use}
 

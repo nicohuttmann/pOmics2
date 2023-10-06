@@ -95,14 +95,12 @@ norm_vsn <- function(data, verbose = F, ...) {
   
   if (rows == "observations") {
     data_m <- data %>% 
-      column_to_rownames(var = rows) %>% 
-      as.matrix() %>% 
+      .tibble2matrix(from.row.names = rows) %>% 
       t() 
       
   } else {
     data_m <- data %>% 
-      column_to_rownames(var = rows) %>% 
-      as.matrix()
+      .tibble2matrix(from.row.names = rows)
   }
   
   # Apply normalization method
@@ -157,4 +155,60 @@ norm_vsn_grouped <- function(data, group.column, ...) {
   # Return data
   return(data_norm)
 }
+
+
+#' Title
+#'
+#'
+#' @param data 
+#' @param method 
+#' @param targets 
+#' @param cyclic.method 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' 
+norm_limma_normalizeBetweenArrays <- function(data, 
+                                              method = "scale", 
+                                              targets = NULL, 
+                                              cyclic.method = "fast",
+                                              ...) {
+  
+  # Prepare data
+  rows <- names(data)[1]
+  
+  if (rows == "observations") {
+    data_m <- data %>% 
+      .tibble2matrix(from.row.names = rows) %>% 
+      t() 
+    
+  } else {
+    data_m <- data %>% 
+      .tibble2matrix(from.row.names = rows)
+  }
+  
+  # Apply normalization method
+  data_norm <- limma::normalizeBetweenArrays(object = data_m, 
+                                             method = method, 
+                                             targets = targets, 
+                                             cyclic.method = cyclic.method, 
+                                             ...)
+  
+  # Reformat the data
+  if (rows == "observations") data_norm <- t(data_norm)
+  
+  data_norm <- .matrix2tibble(data_norm, to.row.names = rows)
+  
+  # Return normalized data
+  return(data_norm)
+  
+}
+
+
+
+
+
+
 

@@ -128,6 +128,89 @@ do_fun <- function(data_, FUN, ..., input.name, output.name = "_fun") {
 #' Template for functions that accept either a data frame or a list
 #'
 #' @param data_ list or tibble
+#' @param FUN function to apply to data
+#' @param ... specific arguments
+#' @param input.name name of input data
+#' @param output.name name of output data
+#'
+#' @return
+#' @export
+#'
+#'
+do_fun_grouped <- function(data_, 
+                           group.column, 
+                           FUN, 
+                           ..., 
+                           input.name, 
+                           output.name = "_fun") {
+  
+  # Check input
+  data <- .unpack_data(data_, input.name)
+  
+  # Save attributes
+  data_attributes <- attributes(data)
+  
+  ####
+  
+  # Test input function
+  if (!hasArg(FUN) | !is.function(FUN)) {
+    stop("No function given for <FUN> argument.")
+  }
+  
+  if (!hasArg(group.column) || !group.column %in% names(data)) 
+    stop("<group.column> must be specified and match a column name in <data>.", 
+         call. = F)
+  
+  # Separately apply function
+  groups <- dplyr::pull(data, group.column)
+  
+  data_list <- list()
+  
+  for (i in unique(groups)) {
+    data_list[[i]] <- do.call(
+      what = FUN,
+      args = list(data %>% 
+                    filter(!!sym(group.column) == i) %>% 
+                    dplyr::select(-all_of(group.column)), ...))
+  }
+  
+  # Combine data
+  data <- dplyr::bind_rows(data_list) %>% 
+    dplyr::mutate(!!group.column := groups, .after = 1)
+  
+  # Output name
+  if (substr(output.name, 1, 1) == "_") {
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
+  
+  ####
+  
+  # Prepare return
+  if (any(deparse(substitute(FUN)) %in% c("save_dataset", 
+                                          "save_data_frame", 
+                                          "save_observations_data", 
+                                          "save_variables_data"))) {
+    data_ <- data_
+    
+  } else if (any(deparse(substitute(FUN)) %in% c("data_frame2new_dataset"))) {
+    data_ <- .pack_data(data, data_, NULL, output.name)
+    # Pack data as usual
+  } else {
+    data_ <- .pack_data(data, data_, data_attributes, output.name, overwrite = F)
+  }
+  
+  # Return
+  return(data_)
+  
+}
+
+
+#' Template for functions that accept either a data frame or a list
+#'
+#' @param data_ list or tibble
 #' @param expr expression what should happen inside the data frame
 #' @param input.name name of input data
 #' @param output.name name of output data
@@ -176,7 +259,7 @@ do_with <- function(data_, expr, ..., input.name, output.name = "_with") {
 #' @param FUN alternative argument to supply what to do with each value or column
 #' @param modify (optional) character vector of columns to modify
 #' @param ignore (optional) character vector of columns to ignore
-#' @param eval.rowwise evaluate columns row by row 
+#' @param eval.rowwise evaluate columns row by row (default = T)
 #' @param input.name if data_ is list: name of data to use
 #' @param output.name if data_ is list: name of output data to save in list under
 #'
@@ -185,14 +268,14 @@ do_with <- function(data_, expr, ..., input.name, output.name = "_with") {
 #'
 #' @importFrom magrittr %>%
 #'
-do_expr <-function(data_, 
-                   expr, 
-                   FUN, 
-                   modify, 
-                   ignore, 
-                   eval.rowwise = T, 
-                   input.name, 
-                   output.name = "_expr") {
+do_expr <- function(data_, 
+                    expr, 
+                    FUN, 
+                    modify, 
+                    ignore, 
+                    eval.rowwise = T, 
+                    input.name, 
+                    output.name = "_expr") {
   
   # Check input
   data <- .unpack_data(data_, input.name)
@@ -231,20 +314,16 @@ do_expr <-function(data_,
   # Rowwise
   if (eval.rowwise) data <- dplyr::rowwise(data)
   
-  
-  # Apply expression
+  # Form function from expression
   if (hasArg(expr)) {
-    data <- data %>%
-      dplyr::mutate(
-        dplyr::across(dplyr::all_of(modify),
-                      function(x) rlang::eval_tidy(rlang::enexpr(expr))))
-  } else {
-    data <- data %>%
-      dplyr::mutate(
-        dplyr::across(dplyr::all_of(modify),
-                      FUN))
+    FUN <- function(x) rlang::eval_tidy(rlang::enexpr(expr))
   }
   
+  # Apply expression
+  data <- data %>%
+    dplyr::mutate(
+      dplyr::across(dplyr::all_of(modify),
+                    FUN))
   
   # Correct if output of function is matrix
   if ("matrix" %in% unlist(lapply(data[modify], class))) {

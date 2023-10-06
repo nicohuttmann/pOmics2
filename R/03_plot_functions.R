@@ -38,7 +38,7 @@ plot_nothing <- function(data_, input.name, output.name = "_plot") {
   ####
   
   # Prepare return
-  data_ <- .pack_data(data, data_, data_attributes, output.name, overwrite = T)
+  data_ <- .pack_data(p, data_, data_attributes, output.name, overwrite = T)
   
   # Return
   return(data_)
@@ -1176,14 +1176,12 @@ plot_volcano <- function(data_,
   
   if (rows == "observations") {
     data_m <- data %>% 
-      column_to_rownames(var = rows) %>% 
-      as.matrix() %>% 
+      .tibble2matrix(from.row.names = rows) %>% 
       t() 
     
   } else {
     data_m <- data %>% 
-      column_to_rownames(var = rows) %>% 
-      as.matrix()
+      .tibble2matrix(from.row.names = rows)
   }
   
   if (log2) data_m <- log2(data_m)
@@ -1196,21 +1194,320 @@ plot_volcano <- function(data_,
 }
 
 
-.plot_vsn_meanSdPlot <- function(data_list, log2 = F) {
+.plot_vsn_meanSdPlot_m <- function(data_list, log2 = F, adjust.limits = T) {
   
+  # Plot individual datasets
   plot_list <- purrr::map(data_list, ~ .plot_vsn_meanSdPlot(.x, log2 = log2))
   
-  limits_list <- purrr::map(plot_list, ~ .get_plot_limits(.x))
+  # Set same limits for all plots
+  if (adjust.limits) {
+    
+    limits_list <- purrr::map(plot_list, ~ .get_plot_limits(.x))
+    
+    limits_df <- list2DF(limits_list)
+    
+    limits <- c(xmin = min(unlist(limits_df[1, ])), 
+                xmax = max(unlist(limits_df[2, ])), 
+                ymin = min(unlist(limits_df[3, ])), 
+                ymax = max(unlist(limits_df[4, ])))
+    
+    plot_list <- purrr::map(
+      plot_list, 
+      ~ .x + 
+        ggplot2::scale_x_continuous(limits = limits[1:2]) +
+        ggplot2::scale_y_continuous(limits = limits[3:4]))
+  }
   
-  limits_df <- list2DF(limits_list)
+  # Name individual plots
+  for (i in names(plot_list)) {
+    plot_list[[i]] <- plot_list[[i]] + ggplot2::ggtitle(i)
+  }
   
-  limits <- c(xmin = min(unlist(limits_df[1, ])), 
-              xmax = max(unlist(limits_df[2, ])), 
-              ymin = min(unlist(limits_df[3, ])), 
-              ymax = max(unlist(limits_df[4, ])))
+  # Assemble plots
+  p <- patchwork::wrap_plots(plot_list)
   
-  
+  # Return plot 
+  return(p)
   
 }
 
 
+#' Evaluates data cell-wise
+#'
+#' @param data_ data list
+#' @param log2 
+#' @param add.title 
+#' @param input.name if data_ is list: name of data to use
+#' @param output.name if data_ is list: name of output data to save in list 
+#' under
+#'
+#' @return
+#' @export
+#'
+#' @importFrom magrittr %>%
+#'
+plot_vsn_meanSdPlot <- function(data_, 
+                                log2 = F, 
+                                add.title = T, 
+                                input.name, 
+                                output.name = "_plot_vsn_meanSdPlot") {
+  
+  # Check input
+  data <- .unpack_data(data_, input.name)
+  
+  # Save attributes
+  data_attributes <- attributes(data)
+  if (!hasArg(input.name)) 
+    input.name <- data_attributes[["input.name"]]
+  
+  ####
+  
+  
+  # Make plot
+  p <- .plot_vsn_meanSdPlot(data, log2 = log2)
+  if (add.title) 
+    p <- p + ggplot2::ggtitle(ifelse(is.null(names(input.name)), 
+                                     input.name, 
+                                     names(input.name)))
+  
+  # Plot
+  plot(p)
+  
+  # Output name
+  if (substr(output.name, 1, 1) == "_") {
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
+  
+  ####
+  
+  # Prepare return
+  data_ <- .pack_data(p, data_, data_attributes, output.name, overwrite = T)
+  
+  # Return
+  return(data_)
+  
+}
+
+
+#' Evaluates data cell-wise
+#'
+#' @param data_ data list
+#' @param log2 
+#' @param add.title 
+#' @param input.names if data_ is list: name of data to use
+#' @param output.name if data_ is list: name of output data to save in list 
+#' under
+#'
+#' @return
+#' @export
+#'
+#' @importFrom magrittr %>%
+#'
+plot_vsn_meanSdPlot_m <- function(data_, 
+                                log2 = F, 
+                                input.names, 
+                                output.name = "_plot_vsn_meanSdPlot_m") {
+  
+  # Check input
+  data_list <- .unpack_data_m(data_, input.names)
+  
+  # Save attributes
+  data_attributes_list <- lapply(data_list, attributes)
+  if (!is.null(names(input.names))) 
+    names(data_list) <- names(input.names)
+  
+  ####
+  
+  
+  # Make plot
+  p <- .plot_vsn_meanSdPlot_m(data_list, log2 = log2)
+  
+  # Plot
+  plot(p)
+  
+  # Output name
+  if (substr(output.name, 1, 1) == "_") {
+    #if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(paste(input.names, collapse = "_"), output.name)
+   # else
+   #   output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
+  
+  ####
+  
+  # Prepare return
+  data_ <- .pack_data(p, 
+                      data_, 
+                      .merge_data_attributes(data_attributes_list), 
+                      output.name, 
+                      overwrite = T)
+  
+  # Return
+  return(data_)
+  
+}
+
+
+#' Title
+#'
+#' @param data data frame 
+#' @param mapping define the variable mapping with the aes() function
+#' @param ... ggplot functions such as geom_s, themes, etc.
+#'
+#' @return
+#'
+#'
+#'
+.plot_gg <- function(data, mapping = aes(), ...) {
+  
+  
+  p <- ggplot2::ggplot(data = data, 
+                       mapping = {{mapping}})
+  
+  for (i in list(...)) {
+    p <- p + i
+  }
+  
+  # Return plot
+  return(p)
+  
+}
+
+
+
+#' Evaluates data cell-wise
+#'
+#' @param data_ data list
+#' @param mapping define the variable mapping with the aes() function
+#' @param ... ggplot functions such as geom_s, themes, etc.
+#' @param pivot.longer should the data be transformed to long format
+#' @param input.name if data_ is list: name of data to use
+#' @param output.name if data_ is list: name of output data to save in list 
+#' under
+#'
+#' @return
+#' @export
+#'
+#' @importFrom magrittr %>%
+#'
+plot_gg <- function(data_, 
+                    mapping = aes(), 
+                    ..., 
+                    pivot.longer = T, 
+                    input.name, 
+                    output.name = "_plot_gg") {
+  
+  # Check input
+  data <- .unpack_data(data_, input.name)
+  
+  # Save attributes
+  data_attributes <- attributes(data)
+  
+  ####
+  
+  # Pivot data
+  if (pivot.longer) {
+    data <- tidyr::pivot_longer(data, 
+                              cols = .data_columns(data, 
+                                                   data_attributes))
+  }
+  
+  
+  # Make plot
+  p <- .plot_gg(data, mapping = mapping, ...)
+  
+  # Literally plot nothing
+  plot(p)
+  
+  # Output name
+  if (substr(output.name, 1, 1) == "_") {
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
+  
+  ####
+  
+  # Prepare return
+  data_ <- .pack_data(p, data_, data_attributes, output.name, overwrite = T)
+  
+  # Return
+  return(data_)
+  
+}
+
+
+#' Evaluates data cell-wise
+#'
+#' @param data_ data list
+#' @param input.name if data_ is list: name of data to use
+#' @param output.name if data_ is list: name of output data to save in list 
+#' under
+#'
+#' @return
+#' @export
+#'
+#' @importFrom magrittr %>%
+#'
+plot_patchwork <- function(data_, 
+                           ncol = NULL, 
+                           nrow = NULL, 
+                           byrow = NULL, 
+                           widths = NULL, 
+                           heights = NULL, 
+                           guides = NULL, 
+                           tag_level = NULL, 
+                           design = NULL,
+                           input.names, 
+                           output.name = "_patchwork") {
+  
+  # Check input
+  data_list <- .unpack_data_m(data_, input.names)
+  
+  # Save attributes
+  data_attributes_list <- lapply(data_list, attributes)
+  if (!is.null(names(input.names))) 
+    names(data_list) <- names(input.names)
+  
+  ####
+  
+  # Make plot of nothing
+  p <- patchwork::wrap_plots(data_list, 
+                             ncol = ncol, 
+                             nrow = nrow, 
+                             byrow = byrow, 
+                             widths = widths, 
+                             heights = heights, 
+                             guides = guides, 
+                             tag_level = tag_level, 
+                             design = design)
+  
+  # Literally plot nothing
+  plot(p)
+  
+  # Output name
+  if (substr(output.name, 1, 1) == "_") {
+    #if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(paste(input.names, collapse = "_"), output.name)
+    #else
+    #  output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
+  
+  ####
+  
+  # Prepare return
+  data_ <- .pack_data(p, data_, data_attributes_list, output.name, overwrite = T)
+  
+  # Return
+  return(data_)
+  
+}
+  
+  
+  
+  
+  
