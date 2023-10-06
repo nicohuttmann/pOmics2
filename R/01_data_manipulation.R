@@ -32,7 +32,7 @@ list_ <- function() {
 #'
 #' @importFrom magrittr %>%
 #'
-do_nothing <-function(data_, input.name, output.name = "_nothing") {
+do_nothing <- function(data_, input.name, output.name = "_nothing") {
   
   # Check input
   data <- .unpack_data(data_, input.name)
@@ -118,6 +118,59 @@ do_fun <- function(data_, FUN, ..., input.name, output.name = "_fun") {
   } else {
     data_ <- .pack_data(data, data_, data_attributes, output.name, overwrite = F)
   }
+  
+  # Return
+  return(data_)
+  
+}
+
+
+#' Template for functions that accept either a data frame or a list
+#'
+#' @param data_ list or tibble
+#' @param FUN function to apply to data
+#' @param ... specific arguments
+#' @param input.names name of input data
+#' @param output.name name of output data
+#'
+#' @return
+#' @export
+#'
+#'
+do_fun_m <- function(data_, FUN, ..., input.names, output.name = "_fun_m") {
+  
+  # Check input
+  data <- .unpack_data_m(data_, input.names)
+  
+  # Save attributes
+  data_attributes_list <- lapply(data, attributes)
+  
+  ####
+  
+  # Test input function
+  if (!hasArg(FUN) | !is.function(FUN)) {
+    stop("No function given for <FUN> argument.")
+  }
+  
+  # Apply function
+  data <- do.call(what = FUN,
+                  args = list(data, ...))
+  
+  # Output name
+  if (substr(output.name, 1, 1) == "_")
+    output.name <- paste0(
+      paste(input.names, collapse = "-"), 
+      output.name)
+  
+  ####
+  
+  # Prepare return
+  data_ <- .pack_data(data = data, 
+                      data_ = data_, 
+                      data_attributes = 
+                        .merge_data_attributes(data_attributes_list), 
+                      output.name = output.name, 
+                      overwrite = F)
   
   # Return
   return(data_)
@@ -631,7 +684,7 @@ do_filter <- function(data_, texpr, input.name, output.name = "_filter") {
 #'
 #' @importFrom magrittr %>%
 #'
-do_join <-function(data_, 
+do_join <- function(data_, 
                    join.type = "full", 
                    by, 
                    suffix, 
@@ -745,13 +798,13 @@ do_join <-function(data_,
 #'
 #' @importFrom magrittr %>%
 #'
-do_join_m <-function(data_, 
-                     join.type = "full", 
-                     by, 
-                     suffix, 
-                     ..., 
-                     input.names, 
-                     output.name) {
+do_join_m <- function(data_, 
+                      join.type = "full", 
+                      by, 
+                      suffix, 
+                      ..., 
+                      input.names, 
+                      output.name) {
   
   # Check input
   data <- .unpack_data_m(data_, input.names)
@@ -1301,8 +1354,11 @@ do_row_mutate <- function(data_,
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
-    output.name <- paste0(data_attributes[["input.name"]], output.name)
-  } 
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
   
   ####
   
@@ -1313,3 +1369,6 @@ do_row_mutate <- function(data_,
   return(data_)
   
 }
+
+
+
