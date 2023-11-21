@@ -955,6 +955,7 @@ plot_pca <- function(data_,
     data_var <- dplyr::select(data, 
                               dplyr::all_of(.data_columns(data, 
                                                           data_attributes))) %>% 
+      dplyr::select(where(is.numeric)) %>% 
       apply(2, sd)
     
     p <- p +
