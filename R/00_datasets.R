@@ -152,6 +152,8 @@ import2new_dataset <- function(raw.data = NULL,
   # Give a warning if any observations cannot be matched in the raw data
   if (length(observations) > 0 && !is.null(raw.data)) {
     
+    if (is.null(names(observations))) names(observations) <- observations
+    
     observations_found <- purrr::map_lgl(observations, 
                                          ~ any(grepl(.x, names(raw.data))))
     
@@ -160,7 +162,7 @@ import2new_dataset <- function(raw.data = NULL,
               paste(observations[!observations_found], collapse = "; "), 
               call. = FALSE)
     } else {
-      observations_data <- tibble::tibble(observations = observations)
+      observations_data <- tibble::tibble(observations = names(observations))
     }
   } else {
     observations_data <- tibble::tibble()
@@ -201,13 +203,12 @@ import2new_dataset <- function(raw.data = NULL,
       
       colnames(data_frame_add) <- variable.ids
       
-      # observations_order <- 
-      #   purrr::map_int(observations, 
-      #                  ~ which(grepl(.x, rownames(data_frame_add))))
+      observations_order <- setNames(names(observations), observations)
       
       data_frame_list[[i]] <- data_frame_add %>% 
         tibble::as_tibble() %>% 
-        dplyr::mutate(observations = observations, # observations[observations_order]
+        dplyr::arrange(match(observations, names(observations_order))) %>% 
+        dplyr::mutate(observations = observations_order[observations], 
                       .before = 1)
       
     }
