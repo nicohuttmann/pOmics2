@@ -19,15 +19,15 @@ do_row_mutate(
 
 \item{texpr}{tidy expression to to use for a new column}
 
+\item{calc_with}{}
+
+\item{group_by}{}
+
 \item{...}{additional arguments for the mutate function}
 
 \item{input.name}{name of input data}
 
 \item{output.name}{name of output data}
-
-\item{column}{name of new column (as string)}
-
-\item{eval.rowwise}{evaluate columns row by row}
 }
 \description{
 dplyr mutate function for list_ objects

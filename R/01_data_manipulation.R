@@ -1284,9 +1284,9 @@ do_column_summary <- function(data_,
 #' dplyr mutate function for list_ objects
 #'
 #' @param data_ list or tibble
-#' @param column name of new column (as string)
 #' @param texpr tidy expression to to use for a new column
-#' @param eval.rowwise evaluate columns row by row
+#' @param calc_with 
+#' @param group_by 
 #' @param ... additional arguments for the mutate function
 #' @param input.name name of input data
 #' @param output.name name of output data
@@ -1371,4 +1371,80 @@ do_row_mutate <- function(data_,
 }
 
 
+#' Title
+#'
+#' @param data_ 
+#' @param texpr 
+#' @param calc_with 
+#' @param group_by 
+#' @param .cols 
+#' @param ... 
+#' @param input.name 
+#' @param output.name 
+#'
+#' @return
+#' @export
+#'
+do_row_mutate_across <- function(data_, 
+                                    texpr, 
+                                    calc_with, 
+                                    group_by = "All", 
+                                    .cols = everything(), 
+                                    ..., 
+                                    input.name, 
+                                    output.name = "_rowmutate") {
+    data <- .unpack_data(data_, input.name)
+    data_attributes <- attributes(data)
+    if (!hasArg(calc_with) || !is.character(calc_with)) 
+      stop("Please specify the <calc_with> column name as a string.", 
+           call. = FALSE)
+    if (!hasArg(texpr)) 
+      stop("Please specify the <texpr> (tidy expression) to define the operations.", 
+           call. = FALSE)
+    if (group_by == "All" & !(group_by %in% names(data))) 
+      data <- dplyr::mutate(data, All = "all")
+    if (!group_by %in% names(data)) {
+      stop("Group column not found in data frame.")
+    }
+    col_name_1 <- names(data)[1]
+    
+    groups <- unique(data[[group_by]]) %>% setNames(., .)
+    
+    
+    # Formulate expressions for each group
+    calc_with_obs <- purrr::map(.x = groups, 
+                                .f = ~ data %>% 
+                                  dplyr::filter(!!dplyr::sym(group_by) == .x) %>% 
+                                  pull(calc_with, observations))
+    texpr_l <- rep(deparse(substitute(texpr)), length(groups))
+    names(texpr_l) <- groups
+    for (i in seq_along(texpr_l)) {
+      texpr_l[i] <- paste0("~", texpr_l[i])
+      for (j in seq_along(calc_with_obs[[i]])) {
+        texpr_l[i] <- gsub(calc_with_obs[[i]][[j]], 
+                          names(calc_with_obs[[i]])[[j]], 
+                          texpr_l[i])
+      }
+    }
 
+    data <- purrr::map(.x = groups, .f = ~data %>% 
+                         dplyr::filter(!!dplyr::sym(group_by) == .x) %>% 
+                         dplyr::select(!all_of(group_by)) %>% 
+                         .transpose_tibble() %>% 
+                         dplyr::mutate(across(where(is.numeric), 
+                                              !!rlang::parse_quo(texpr_l[[.x]], env = rlang::current_env())), 
+                                                               .keep = "unused") %>% 
+                         .tibble2matrix(., from.row.names = names(.)[1]) %>% 
+                         t() %>% .matrix2tibble(to.row.names = col_name_1)) %>% 
+      list_rbind()
+    if (substr(output.name, 1, 1) == "_") {
+      if (getOption("pOmics2_list_long_names")) 
+        output.name <- paste0(data_attributes[["input.name"]], 
+                              output.name)
+      else output.name <- paste0(data_attributes[["input.position"]], 
+                                 output.name)
+    }
+    data_ <- .pack_data(data, data_, data_attributes, output.name, 
+                        overwrite = T)
+    return(data_)
+  }

@@ -8,12 +8,13 @@
   geneList,
   organism = "hsa",
   keyType = "uniprot",
-  qvalueCutoff = 0.2,
+  exponent = 1,
   minGSSize = 10,
   maxGSSize = 120,
   eps = 1e-10,
   pvalueCutoff = 0.05,
   pAdjustMethod = "none",
+  qvalueCutoff = 0.2,
   verbose = TRUE,
   use_internal_data = FALSE,
   seed = FALSE,
@@ -22,8 +23,6 @@
 )
 }
 \arguments{
-\item{qvalueCutoff}{q-value cutoff for annotations}
-
 \item{minGSSize}{minimum number of annotated proteins to be included}
 
 \item{maxGSSize}{maximum number of annotated proteins to be included}
@@ -31,6 +30,8 @@
 \item{pvalueCutoff}{p-value cutoff for annotations}
 
 \item{pAdjustMethod}{one of "none", "BH" (Benjamini-Hochberg correction), "hochberg", "bonferroni", "holm", "hommel", "BY", "fdr"}
+
+\item{qvalueCutoff}{q-value cutoff for annotations}
 
 \item{proteins}{numeric/logical vector of proteins indicating group}
 }

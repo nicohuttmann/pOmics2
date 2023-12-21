@@ -847,151 +847,67 @@ plot_xy <- function(data_,
 #'
 #' @importFrom magrittr %>%
 #'
-plot_pca <- function(data_, 
-                     x = "PC1", 
-                     y = "PC2", 
-                     include.variance = T,
-                     include.ellipses = F,
-                     labels, 
-                     size = 1, 
-                     color = "Set1", 
-                     fill = color, 
-                     shape = 16,
-                     transparency = 0.8,
-                     size.by = NULL,  
-                     color.by = "observations",
-                     fill.by = color.by,
-                     shape.by = NULL,
-                     ellipse.size = 1,
-                     ellipse.transparency = 1,
-                     ellipse.linetype = 1,
-                     plot.theme = ggplot2::theme_classic, 
-                     x.axis.title = x, 
-                     y.axis.title = y, 
-                     label.size = 8, 
-                     label.color = "black", 
-                     legend.title.color = color.by,
-                     legend.title.shape = shape.by,
-                     legend.title.fill = fill.by,
-                     legend.title.size = size.by,
-                     legend.position = "right",
-                     legend.rows = NULL, 
-                     x.axis.limits = NULL,
-                     y.axis.limits = NULL,
-                     x.axis.breaks = NULL,
-                     y.axis.breaks = NULL,
-                     aspect.ratio = 1,
-                     plot.center = NULL,
-                     axis.unit.ratio = 1,
-                     expand.x.axis = c(0, 0),
-                     expand.y.axis = c(0, 0), 
-                     ggrepel.nudge_x = 100, 
-                     ggrepel.box.padding = 0.3, 
-                     ggrepel.point.padding = 0.3, 
-                     ggrepel.force = 0.2, 
-                     input.name, 
-                     output.name = "_plotpca") {
-  
-  # Check input
+plot_pca <- function (data_, x = "PC1", y = "PC2", include.variance = T, 
+                      include.ellipses = F, labels, size = 1, color = "Set1", 
+                      fill = color, shape = 16, transparency = 0.8, size.by = NULL, 
+                      color.by = "observations", fill.by = color.by, shape.by = NULL, 
+                      ellipse.size = 1, ellipse.transparency = 1, ellipse.linetype = 1, 
+                      plot.theme = ggplot2::theme_classic, x.axis.title = x, y.axis.title = y, 
+                      label.size = 8, label.color = "black", legend.title.color = color.by, 
+                      legend.title.shape = shape.by, legend.title.fill = fill.by, 
+                      legend.title.size = size.by, legend.position = "right", 
+                      legend.rows = NULL, x.axis.limits = NULL, y.axis.limits = NULL, 
+                      x.axis.breaks = NULL, y.axis.breaks = NULL, aspect.ratio = 1, 
+                      plot.center = NULL, axis.unit.ratio = 1, expand.x.axis = c(0, 
+                                                                                 0), expand.y.axis = c(0, 0), ggrepel.nudge_x = 100, 
+                      ggrepel.box.padding = 0.3, ggrepel.point.padding = 0.3, 
+                      ggrepel.force = 0.2, input.name, output.name = "_plotpca") 
+{
   data <- .unpack_data(data_, input.name)
-  
-  # Save attributes
   data_attributes <- attributes(data)
-  
-  ####
-  
-  
-  # Define colors automatically
   if (length(color) == 1 && color %in% rownames(RColorBrewer::brewer.pal.info)) {
     color <- RColorBrewer::brewer.pal(max(c(3, length(unique(data[[color.by]])))), 
                                       name = color)
+  } else if (length(color) == 1) {
+    color <- rep(color, length(unique(data[[color.by]])))
   }
   
-  # Make plot
-  p <- .plot_xy(data = data, 
-                x = x, 
-                y = y, 
-                labels = labels, 
-                size = size, 
-                transparency = transparency,
-                color = color, 
-                fill = fill, 
-                shape = shape,
-                size.by = size.by,  
-                color.by = color.by,
-                fill.by = fill.by,
-                shape.by = shape.by, 
-                plot.theme = plot.theme, 
-                x.axis.title = x.axis.title, 
-                y.axis.title = y.axis.title, 
-                label.size = label.size, 
-                label.color = label.color, 
-                legend.title.color = legend.title.color,
-                legend.title.shape = legend.title.shape,
-                legend.title.fill = legend.title.fill,
-                legend.title.size = legend.title.size,
-                legend.position = legend.position,
-                legend.rows = legend.rows, 
-                x.axis.limits = x.axis.limits,
-                y.axis.limits = y.axis.limits,
-                x.axis.breaks = x.axis.breaks,
-                y.axis.breaks = y.axis.breaks,
-                aspect.ratio = aspect.ratio,
-                plot.center = plot.center,
-                axis.unit.ratio = axis.unit.ratio,
-                expand.x.axis = expand.x.axis,
+  p <- .plot_xy(data = data, x = x, y = y, labels = labels, 
+                size = size, transparency = transparency, color = color, 
+                fill = fill, shape = shape, size.by = size.by, color.by = color.by, 
+                fill.by = fill.by, shape.by = shape.by, plot.theme = plot.theme, 
+                x.axis.title = x.axis.title, y.axis.title = y.axis.title, 
+                label.size = label.size, label.color = label.color, 
+                legend.title.color = legend.title.color, legend.title.shape = legend.title.shape, 
+                legend.title.fill = legend.title.fill, legend.title.size = legend.title.size, 
+                legend.position = legend.position, legend.rows = legend.rows, 
+                x.axis.limits = x.axis.limits, y.axis.limits = y.axis.limits, 
+                x.axis.breaks = x.axis.breaks, y.axis.breaks = y.axis.breaks, 
+                aspect.ratio = aspect.ratio, plot.center = plot.center, 
+                axis.unit.ratio = axis.unit.ratio, expand.x.axis = expand.x.axis, 
                 expand.y.axis = expand.y.axis)
-  
-  # Include ellipses 
   if (include.ellipses) {
-    p <- p + ggplot2::stat_ellipse(size = ellipse.size,
-                          alpha = ellipse.transparency,
-                          linetype = ellipse.linetype)
+    p <- p + ggplot2::stat_ellipse(size = ellipse.size, 
+                                   alpha = ellipse.transparency, linetype = ellipse.linetype)
   }
-  
-  # Show variance on axis titles
   if (include.variance) {
-    
-    data_var <- dplyr::select(data, 
-                              dplyr::all_of(.data_columns(data, 
-                                                          data_attributes))) %>% 
-      dplyr::select(where(is.numeric)) %>% 
-      apply(2, sd)
-    
-    p <- p +
-      xlab(paste0(
-        x, " (", round(
-          100 * data_var[[x]]^2 / sum(data_var^2),
-          digits = 1), "%)")) +
-      ylab(paste0(
-        y, " (", round(
-          100 * data_var[[y]]^2 / sum(data_var^2),
-          digits = 1), "%)"))
-    
+    data_var <- dplyr::select(data, dplyr::all_of(.data_columns(data, 
+                                                                data_attributes))) %>% apply(2, sd)
+    p <- p + xlab(paste0(x, " (", round(100 * data_var[[x]]^2/sum(data_var^2), 
+                                        digits = 1), "%)")) + ylab(paste0(y, " (", round(100 * 
+                                                                                           data_var[[y]]^2/sum(data_var^2), digits = 1), "%)"))
   }
-  
-  # Print to Plots panel
   plot(p)
-  
-  
-  # Output name
   if (substr(output.name, 1, 1) == "_") {
-    if (getOption("pOmics2_list_long_names"))
-      output.name <- paste0(data_attributes[["input.name"]], output.name)
-    else
-      output.name <- paste0(data_attributes[["input.position"]], output.name)
+    if (getOption("pOmics2_list_long_names")) 
+      output.name <- paste0(data_attributes[["input.name"]], 
+                            output.name)
+    else output.name <- paste0(data_attributes[["input.position"]], 
+                               output.name)
   }
-  
-  ####
-  
-  # Prepare return
   data_ <- .pack_data(p, data_, data_attributes, output.name, 
-                      overwrite = T, 
-                      last.entry = data_attributes[["input.name"]])
-  
-  # Return
+                      overwrite = T, last.entry = data_attributes[["input.name"]])
   return(invisible(data_))
-  
 }
 
 
