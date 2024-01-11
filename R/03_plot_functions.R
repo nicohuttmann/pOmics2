@@ -847,29 +847,66 @@ plot_xy <- function(data_,
 #'
 #' @importFrom magrittr %>%
 #'
-plot_pca <- function (data_, x = "PC1", y = "PC2", include.variance = T, 
-                      include.ellipses = F, labels, size = 1, color = "Set1", 
-                      fill = color, shape = 16, transparency = 0.8, size.by = NULL, 
-                      color.by = "observations", fill.by = color.by, shape.by = NULL, 
-                      ellipse.size = 1, ellipse.transparency = 1, ellipse.linetype = 1, 
-                      plot.theme = ggplot2::theme_classic, x.axis.title = x, y.axis.title = y, 
-                      label.size = 8, label.color = "black", legend.title.color = color.by, 
-                      legend.title.shape = shape.by, legend.title.fill = fill.by, 
-                      legend.title.size = size.by, legend.position = "right", 
-                      legend.rows = NULL, x.axis.limits = NULL, y.axis.limits = NULL, 
-                      x.axis.breaks = NULL, y.axis.breaks = NULL, aspect.ratio = 1, 
-                      plot.center = NULL, axis.unit.ratio = 1, expand.x.axis = c(0, 
-                                                                                 0), expand.y.axis = c(0, 0), ggrepel.nudge_x = 100, 
-                      ggrepel.box.padding = 0.3, ggrepel.point.padding = 0.3, 
-                      ggrepel.force = 0.2, input.name, output.name = "_plotpca") 
-{
+plot_pca <- function (data_, 
+                      x = "PC1", 
+                      y = "PC2", 
+                      include.variance = T, 
+                      include.ellipses = F, 
+                      labels, 
+                      size = 1, 
+                      color = "black", 
+                      fill = color, 
+                      shape = 16, 
+                      transparency = 0.8, 
+                      size.by = NULL, 
+                      color.by = "observations", 
+                      fill.by = color.by, 
+                      shape.by = NULL, 
+                      ellipse.size = 1, 
+                      ellipse.transparency = 1, 
+                      ellipse.linetype = 1, 
+                      plot.theme = ggplot2::theme_classic, 
+                      x.axis.title = x, y.axis.title = y, 
+                      label.size = 8, 
+                      label.color = "black", 
+                      legend.title.color = color.by, 
+                      legend.title.shape = shape.by, 
+                      legend.title.fill = fill.by, 
+                      legend.title.size = size.by, 
+                      legend.position = "right", 
+                      legend.rows = NULL, 
+                      x.axis.limits = NULL, 
+                      y.axis.limits = NULL, 
+                      x.axis.breaks = NULL, 
+                      y.axis.breaks = NULL, 
+                      aspect.ratio = 1, 
+                      plot.center = NULL, 
+                      axis.unit.ratio = 1, 
+                      expand.x.axis = c(0, 0), 
+                      expand.y.axis = c(0, 0), 
+                      ggrepel.nudge_x = 100, 
+                      ggrepel.box.padding = 0.3, 
+                      ggrepel.point.padding = 0.3, 
+                      ggrepel.force = 0.2, 
+                      input.name, 
+                      output.name = "_plotpca") {
+  
   data <- .unpack_data(data_, input.name)
+  
   data_attributes <- attributes(data)
-  if (length(color) == 1 && color %in% rownames(RColorBrewer::brewer.pal.info)) {
-    color <- RColorBrewer::brewer.pal(max(c(3, length(unique(data[[color.by]])))), 
-                                      name = color)
-  } else if (length(color) == 1) {
-    color <- rep(color, length(unique(data[[color.by]])))
+  
+  if (length(color) == 1) {
+    
+    if (color %in% rownames(RColorBrewer::brewer.pal.info)) {
+      color <- RColorBrewer::brewer.pal(max(c(3, length(unique(data[[color.by]])))), 
+                                        name = color)
+    } else if (color %in% colours()) {
+      color <- rep(color, length(unique(data[[color.by]])))
+    } else if (is.numeric(color)) {
+      set.seed(color)
+      color <- rcol(n = length(unique(data[[color.by]])), 
+                    seed = color)
+    }
   }
   
   p <- .plot_xy(data = data, x = x, y = y, labels = labels, 

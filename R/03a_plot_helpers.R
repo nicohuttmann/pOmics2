@@ -1,3 +1,24 @@
+#' Returns a randomly generated vector of colors sorted by hue
+#'
+#' @param n 
+#' @param seed 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+rcol <- function(n = 1, seed = 42) {
+  
+  set.seed(seed)
+  
+  cols <- sample(x = colours(), size = n, replace = F)
+  
+  cols_h <- cols[order(rgb2hsv(col2rgb(cols))[1, ])]
+  
+  return(cols)
+}
+
+
 #' Helps make nice axis limit breaks
 #'
 #' @param plot.limits vector containing plot limits

@@ -272,7 +272,7 @@ do_fun_grouped <- function(data_,
 #' @export
 #'
 #'
-do_with <- function(data_, expr, ..., input.name, output.name = "_with") {
+do_with <- function(data_, expr, input.name, output.name = "_with") {
   
   # Check input
   data <- .unpack_data(data_, input.name)
@@ -284,6 +284,49 @@ do_with <- function(data_, expr, ..., input.name, output.name = "_with") {
   
   # Apply function
   data <- eval(substitute(expr), envir = data)
+  
+  # Output name
+  if (substr(output.name, 1, 1) == "_") {
+    if (getOption("pOmics2_list_long_names"))
+      output.name <- paste0(data_attributes[["input.name"]], output.name)
+    else
+      output.name <- paste0(data_attributes[["input.position"]], output.name)
+  }
+  
+  ####
+  
+  # Prepare return
+  data_ <- .pack_data(data, data_, data_attributes, output.name, "list_", F)
+  
+  # Return
+  return(data_)
+  
+}
+
+
+#' Template for functions that accept either a data frame or a list
+#'
+#' @param data_ list or tibble
+#' @param expr expression what should happen inside the data frame
+#' @param input.name name of input data
+#' @param output.name name of output data
+#'
+#' @return
+#' @export
+#'
+#'
+do_with_ <- function(data_, expr, output.name = "_with") {
+  
+  # Check input
+  data <- .unpack_data(data_)
+  
+  # Save attributes
+  data_attributes <- attributes(data)
+  
+  ####
+  
+  # Apply function
+  data <- eval(substitute(expr), envir = data_)
   
   # Output name
   if (substr(output.name, 1, 1) == "_") {
@@ -577,27 +620,11 @@ do_select <- function(data_,
          call. = FALSE)
   
   # Data column names
-  data_cols <- .data_columns(data, data_attributes)
+  #.data_cols <- .data_columns(data, data_attributes)
   
-  # Select data = T (only affect data)
-  if (select.data.only) {
-    # save non-data columns
-    data_1 <- data %>% 
-      dplyr::select(!dplyr::all_of(data_cols))
-    # Use only data columns and select based on tidy-expression <texpr>
-    data <- data %>% 
-      dplyr::select(dplyr::all_of(data_cols)) %>% 
-      dplyr::select(!!dplyr::enquo(texpr)) %>% 
-      # Add first column for merge
-      dplyr::mutate(!!names(data_1)[1] := data_1[[1]], .before = 1)
-    # Merge non-data columns and selected data columns
-    data <- data_1 %>% 
-      dplyr::full_join(data, by = names(data_1)[1])
-    # select from all columns
-  } else {
-    data <- data %>% 
-      dplyr::select(!!dplyr::enquo(texpr))
-  }
+  # Select data
+  data <- data %>% 
+    dplyr::select(!!dplyr::enquo(texpr))
   
   
   # Output name
@@ -705,10 +732,6 @@ do_join <- function(data_,
   
   data_y <- data[[2]]
   
-  # by argument
-  # by <- match.arg(arg = by, 
-  #                 choices = c("variables", 
-  #                             "observations")) 
   
   # Suffix argument
   if (!hasArg(suffix)) suffix <- paste0("_", input.names)
@@ -819,38 +842,71 @@ do_join_m <- function(data_,
   
   data <- data[[1]]
   
-  # by argument
-  by <- match.arg(arg = by, 
-                  choices = c("variables", 
-                              "observations")) 
   
   # suffix argument
   if (!hasArg(suffix)) suffix <- paste0("_", input.names)
-  else if (length(unique(suffix)) != length(data.names)) 
+  else if (length(unique(suffix)) != length(input.names)) 
     stop("<input.names> must have the same length as <suffix>.")
   
+  # Rename columns except by
+  table_names <- lapply(data_all, names) %>% 
+    unlist() %>% 
+    table() 
+  
+  to_rename <- setdiff(names(table_names)[table_names > 1], by)
+  
+  data_all <- purrr::map(
+    seq_along(data_all), 
+    ~ dplyr::rename_with(data_all[[.x]], 
+                         .fn = function(y) paste0(y, suffix[.x]), 
+                         .cols = dplyr::any_of(to_rename)))
   
   # Join data frames
   
-  # First join
-  data <- dplyr::full_join(x = data, 
-                           y = data_all[[2]], 
-                           by = by,   
-                           suffix = suffix[1:2], 
-                           ...)
-  
-  # All other
-  if (length(data_all) > 2) {
+  if (join.type == "full") {
     
-    for (i in 3:length(data_all)) {
+    # First join
+    data <- dplyr::full_join(x = data_all[[1]], 
+                             y = data_all[[2]], 
+                             by = by, 
+                             ...)
+    
+    # All other
+    if (length(data_all) > 2) {
       
-      data <- dplyr::full_join(x = data, 
-                               y = data_all[[i]], 
-                               by = by,   
-                               suffix = c(suffix[i - 1], suffix[i]), 
-                               ...)
+      for (i in 3:length(data_all)) {
+        
+        data <- dplyr::full_join(x = data, 
+                                 y = data_all[[i]], 
+                                 by = by, 
+                                 ...)
+      }
     }
+    
+  } else if (join.type == "inner") {
+    
+    # First join
+    data <- dplyr::inner_join(x = data_all[[1]], 
+                             y = data_all[[2]], 
+                             by = by, 
+                             ...)
+    
+    # All other
+    if (length(data_all) > 2) {
+      
+      for (i in 3:length(data_all)) {
+        
+        data <- dplyr::inner_join(x = data, 
+                                 y = data_all[[i]], 
+                                 by = by, 
+                                 ...)
+      }
+    }
+    
+  } else {
+    stop("Only 'full' and 'inner' are supported as <join.type>.")
   }
+  
   
   
   

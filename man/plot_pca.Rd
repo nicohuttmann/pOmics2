@@ -12,7 +12,7 @@ plot_pca(
   include.ellipses = F,
   labels,
   size = 1,
-  color = "Set1",
+  color = "black",
   fill = color,
   shape = 16,
   transparency = 0.8,
