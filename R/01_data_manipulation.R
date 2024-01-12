@@ -855,11 +855,12 @@ do_join_m <- function(data_,
   
   to_rename <- setdiff(names(table_names)[table_names > 1], by)
   
-  data_all <- purrr::map(
-    seq_along(data_all), 
-    ~ dplyr::rename_with(data_all[[.x]], 
-                         .fn = function(y) paste0(y, suffix[.x]), 
-                         .cols = dplyr::any_of(to_rename)))
+  if (length(to_rename) > 0)
+    data_all <- purrr::map(
+      seq_along(data_all), 
+      ~ dplyr::rename_with(data_all[[.x]], 
+                           .fn = function(y) paste0(y, suffix[.x]), 
+                           .cols = dplyr::any_of(to_rename)))
   
   # Join data frames
   
